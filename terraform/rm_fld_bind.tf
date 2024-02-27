@@ -1,8 +1,4 @@
-#data "yandex_resourcemanager_folder" "project1" {
-#  folder_id = "some_folder_id"
-#}
-
-resource "yandex_resourcemanager_folder_iam_binding" "admin" {
+resource "yandex_resourcemanager_folder_iam_binding" "this" {
   folder_id = var.folder_id_val
 
   role = "editor"

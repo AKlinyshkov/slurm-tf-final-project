@@ -1,54 +1,56 @@
+data "yandex_compute_image" "this" {
+  name = "${var.image_name}-${var.image_tag}"
+}
+
 resource "yandex_compute_instance_group" "this" {
   name                = "nginx-ig"
   folder_id           = "${var.folder_id_val}"
   service_account_id  = "${yandex_iam_service_account.this.id}"
-  deletion_protection = true
+  deletion_protection = false
+  depends_on = [yandex_resourcemanager_folder_iam_binding.this]
+  load_balancer {
+    target_group_name = "nginx-instance-group"
+  } 
   instance_template {
-    platform_id = "standard-v1"
+    platform_id = "standard-v2"
     resources {
-      memory = 4
-      cores  = 2
+      memory = var.resources.memory 
+      cores  = var.resources.cpu 
     }
     boot_disk {
       mode = "READ_WRITE"
       initialize_params {
-        image_id = "${data.yandex_compute_image.ubuntu.id}"
-        size     = 4
+        image_id = "${data.yandex_compute_image.this.id}"
+        size     = var.resources.disk 
       }
     }
     network_interface {
       network_id = "${yandex_vpc_network.this.id}"
-      subnet_ids = ["${yandex_vpc_subnet.this.id}"]
+      subnet_ids = [ for subnt in yandex_vpc_subnet.this : subnt.id ]
     }
     labels = var.labels 
     metadata = {
-      foo      = "bar"
-      ssh-keys = "ubuntu:${file("~/.ssh/id_rsa.pub")}"
+      ssh-keys = var.public_ssh_key_path != "" ? "cloud-user:${file(var.public_ssh_key_path)}" : "cloud-user:${tls_private_key.pk[0].public_key_openssh}"
     }
     network_settings {
       type = "STANDARD"
     }
   }
 
-  variables = {
-    test_key1 = "test_value1"
-    test_key2 = "test_value2"
-  }
-
   scale_policy {
     fixed_scale {
-      size = 3
+      size = var.vm_count 
     }
   }
 
   allocation_policy {
-    zones = ["ru-central1-a"]
+    zones = var.az
   }
 
   deploy_policy {
-    max_unavailable = 2
-    max_creating    = 2
-    max_expansion   = 2
-    max_deleting    = 2
+    max_unavailable = var.deploy_policy.max_unavailable
+    max_creating    = var.deploy_policy.max_creating
+    max_expansion   = var.deploy_policy.max_expansion
+    max_deleting    = var.deploy_policy.max_deleting
   }
 }

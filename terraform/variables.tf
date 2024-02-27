@@ -1,22 +1,11 @@
-variable "vm_name" {
+variable "image_name" {
   type        = string
-  description = "Virtual Machine name"
+  description = "Image name"
 }
 
-variable "image_id" {
+variable "image_tag" {
   type        = string
-  description = "Image identificator"
-  default     = "fd82tb3u07rkdkfte3dn"
-}
-
-variable "cidr_blocks" {
-  type = list(list(string))
-  description = ""
-}
-
-variable "labels" {
-  type = map(string)
-  description = ""
+  description = "Image tag"
 }
 
 variable "resources" {
@@ -27,10 +16,20 @@ variable "resources" {
   })
 }
 
-variable "listener_port" {
-  type = number
-  description = "listener port"
+variable "deploy_policy" {
+  type = object({
+    max_unavailable = number
+    max_creating = number
+    max_expansion = number
+    max_deleting = number
+  })
 }
+
+variable "vm_count" {
+  type = number
+  description = "Count of virtual machines"
+}
+
 
 variable "nlb_healthcheck" {
   type = object({
@@ -38,6 +37,22 @@ variable "nlb_healthcheck" {
     port = number
     path = string
   })
+}
+
+variable "listener_port" {
+  type = number
+  description = "listener port"
+}
+
+
+variable "cidr_blocks" {
+  type = list(list(string))
+  description = ""
+}
+
+variable "labels" {
+  type = map(string)
+  description = ""
 }
 
 variable "public_ssh_key_path" {
@@ -50,21 +65,6 @@ variable "az" {
   description = "List of availability zones"
 }
 
-variable "platformid" {
-  type = list(string)
-  description = "List of platform id"
-}
-
-variable "vm_count" {
-  type = number
-  description = "Count of virtual machines"
-}
-
-variable "image_family" {
-  type = string
-  description = "Virtual Machine Image"
-  default = "centos-7"
-}
 
 variable "token_val" {
   type = string

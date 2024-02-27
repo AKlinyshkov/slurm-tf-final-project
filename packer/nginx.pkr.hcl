@@ -18,6 +18,10 @@ source "yandex" "tstimg" {
 build {
   sources = ["source.yandex.tstimg"]
 
+  provisioner "shell" {
+      inline = ["yum provides /usr/sbin/semanage", "sudo yum install policycoreutils-python -y", "sudo semanage port -a -t http_port_t -p tcp 8800"]
+  }
+
   provisioner "ansible" {
     playbook_file = "ansible/playbook.yml"
      
